@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LocalizationPackages>
+    <LocalizationPackage Lang="English">
+        <Text key="Options.SeamothFlareSystem_LaunchForce">Flare launch force</Text>
+        <Text key="Options.SeamothFlareSystem_LaunchForce.Tooltip">Adjust how much force is applied
+            when launching a flare from the Seamoth.</Text>
+    </LocalizationPackage>
+</LocalizationPackages>
