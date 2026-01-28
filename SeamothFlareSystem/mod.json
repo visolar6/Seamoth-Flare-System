@@ -1,8 +1,0 @@
-{
-  "id": "com.visolar6.seamothflaresystem",
-  "name": "Seamoth Flare System",
-  "version": "0.1.0",
-  "description": "A fresh mod template for Subnautica mods.",
-  "authors": ["visolar6"],
-  "entryPoint": "SeamothFlareSystem.Plugin"
-}

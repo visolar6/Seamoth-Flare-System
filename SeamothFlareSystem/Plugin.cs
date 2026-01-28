@@ -1,3 +1,5 @@
+using System.IO;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -14,6 +16,8 @@ namespace SeamothFlareSystem
 
         public static ManualLogSource? Log;
 
+        public static ResourceCacheManager? AssetsCache { get; private set; }
+
         internal const string GUID = "com.visolar6.seamothflaresystem";
 
         internal const string Name = "Seamoth Flare System";
@@ -29,15 +33,14 @@ namespace SeamothFlareSystem
         {
             Log = Logger;
 
-            Log.LogInfo($"{Name} {Version} loading...");
-
-
-
-            Log.LogInfo($"{Name} {Version} loaded.");
+            AssetsCache = ResourceCacheManager.LoadResources(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "seamothflaresystem.assets"));
         }
 
         public void Start()
         {
+            Log?.LogInfo($"Initializing prefab cache...");
+            StartCoroutine(PrefabCacheManager.Initialize());
+
             Log?.LogInfo($"Patching hooks...");
             _harmony.PatchAll();
 

@@ -440,7 +440,9 @@
     <Content Include="Localizations.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="mod.json" />
+    <Content Include="seamothflaresystem.assets">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <!-- Build Targets -->
@@ -450,8 +452,7 @@
     <MakeDir Directories="$(OutputPath)plugins" />
   </Target>
 
-  <Target Name="CopyToModsDir" AfterTargets="CopyToTargetDir"
-    Condition="'$(Configuration)' == 'Debug' And Exists('game-dirs.txt')">
+  <Target Name="CopyToModsDir" AfterTargets="CopyToTargetDir" Condition="'$(Configuration)' == 'Debug' And Exists('game-dirs.txt')">
     <ReadLinesFromFile File="game-dirs.txt">
       <Output TaskParameter="Lines" ItemName="GameDirs" />
     </ReadLinesFromFile>
@@ -471,7 +472,6 @@
     </CreateItem>
     <Copy SourceFiles="@(TargetFiles)" DestinationFolder="bin/built/$(ProjectName)" />
     <MakeDir Directories="bin/built/$(ProjectName)/" />
-    <ZipDirectory SourceDirectory="bin/built"
-      DestinationFile="bin/$(ProjectName).$(Configuration).zip" Overwrite="True" />
+    <ZipDirectory SourceDirectory="bin/built" DestinationFile="bin/$(ProjectName).$(Configuration).zip" Overwrite="True" />
   </Target>
 </Project>

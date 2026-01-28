@@ -1,4 +1,3 @@
-using System.Collections;
 using SeamothFlareSystem.Utilities;
 using UnityEngine;
 
@@ -6,18 +5,38 @@ namespace SeamothFlareSystem.Mono;
 
 internal class LaunchFlareBehavior : MonoBehaviour
 {
-    public void LaunchFlare(Vehicle vehicle)
+    public void LaunchFlare(Vehicle vehicle, int slotID)
     {
-        StartCoroutine(CustomPrefabHandler.GetPrefabForTechTypeAsync(TechType.Flare, flarePrefab =>
+        if (PrefabCacheManager.Flare != null)
         {
-            if (flarePrefab == null)
-                return;
+            // Find the correct mesh visual for the slot and use its position as the spawn point
+            Transform flareSpawn = vehicle.transform.Find($"FlareModuleMesh_{slotID}");
 
-            float launchForceAmount = SeamothFlareSystem.Plugin.Options.LaunchForceAmount;
+            Vector3 spawnPos;
+            if (flareSpawn != null)
+            {
+                // Subtract a small value from Y to align with the mesh
+                spawnPos = flareSpawn.position + (vehicle.transform.up * -0.3f);
+            }
+            else
+            {
+                // Fallback to default position
+                spawnPos = vehicle.transform.position + vehicle.transform.forward * 2f + vehicle.transform.up * 0.5f;
+            }
 
-            var flare = Instantiate(flarePrefab);
-            flare.transform.position = vehicle.transform.position + vehicle.transform.forward * 2f + vehicle.transform.up * 0.5f;
-            flare.transform.rotation = Quaternion.LookRotation(vehicle.transform.forward, Vector3.up);
+            Quaternion spawnRot;
+            if (flareSpawn != null)
+            {
+                spawnRot = flareSpawn.rotation;
+            }
+            else
+            {
+                spawnRot = Quaternion.LookRotation(vehicle.transform.forward, Vector3.up);
+            }
+
+            var flare = Instantiate(PrefabCacheManager.Flare);
+            flare.transform.position = spawnPos;
+            flare.transform.rotation = spawnRot;
 
             var flareComp = flare.GetComponent<Flare>();
             if (flareComp != null)
@@ -25,22 +44,22 @@ internal class LaunchFlareBehavior : MonoBehaviour
                 var flareType = typeof(Flare);
                 // Set hasBeenThrown = true
                 var hasBeenThrownField = flareType.GetField("hasBeenThrown", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
-                if (hasBeenThrownField != null)
-                    hasBeenThrownField.SetValue(flareComp, true);
+                hasBeenThrownField?.SetValue(flareComp, true);
 
                 // Set isThrowing = true (so OnDrop logic applies throw force)
                 var isThrowingField = flareType.GetField("isThrowing", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                if (isThrowingField != null)
-                    isThrowingField.SetValue(flareComp, true);
+                isThrowingField?.SetValue(flareComp, true);
 
                 // Set up Rigidbody and apply force/torque as in OnDrop
                 var rb = flare.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
+                    var forwardForce = vehicle.transform.forward * Plugin.Options.LaunchForceAmount;
+                    var forwardVelocity = vehicle.GetComponent<Rigidbody>().velocity + forwardForce;
                     rb.isKinematic = false;
                     rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-                    rb.velocity = vehicle.GetComponent<Rigidbody>().velocity + vehicle.transform.forward * launchForceAmount;
-                    rb.AddForce(vehicle.transform.forward * launchForceAmount);
+                    rb.velocity = forwardVelocity;
+                    rb.AddForce(forwardForce);
                     rb.AddTorque(flare.transform.right * 5f); // dropTorqueAmount from vanilla
                 }
 
@@ -48,7 +67,7 @@ internal class LaunchFlareBehavior : MonoBehaviour
                 var setFlareActiveState = flareType.GetMethod("SetFlareActiveState", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
                 if (setFlareActiveState != null)
                 {
-                    setFlareActiveState.Invoke(flareComp, new object[] { true });
+                    setFlareActiveState.Invoke(flareComp, [true]);
                 }
                 else
                 {
@@ -63,16 +82,27 @@ internal class LaunchFlareBehavior : MonoBehaviour
                 if (fxControl != null && fxIsPlayingField != null && (fxIsPlaying == null || fxIsPlaying == false))
                 {
                     var playMethod = fxControl.GetType().GetMethod("Play", new[] { typeof(int) });
-                    playMethod?.Invoke(fxControl, new object[] { 1 });
+                    playMethod?.Invoke(fxControl, [1]);
                     fxIsPlayingField.SetValue(flareComp, true);
                 }
 
                 // Set isThrowing = false (as OnDrop does at the end)
-                if (isThrowingField != null)
-                    isThrowingField.SetValue(flareComp, false);
-            }
+                isThrowingField?.SetValue(flareComp, false);
 
-            Plugin.Log?.LogInfo("Flare launched!");
-        }));
+                // Increase illumination of the flare
+                var flareLight = flare.GetComponentInChildren<Light>();
+                if (flareLight != null)
+                {
+                    flareLight.intensity = Plugin.Options.FlareLightIntensity;
+                    flareLight.range = Plugin.Options.FlareLightRange;
+                    // Optionally adjust color
+                    // flareLight.color = Color.white;
+                }
+            }
+        }
+        else
+        {
+            Plugin.Log?.LogError("PrefabCache.Flare is null, cannot launch flare.");
+        }
     }
 }

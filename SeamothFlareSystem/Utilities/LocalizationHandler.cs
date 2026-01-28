@@ -42,19 +42,17 @@ namespace SeamothFlareSystem.Utilities
         private static readonly string filename = "Localizations.xml";
         public static void LanguagePatch()
         {
-            Plugin.Log?.LogInfo("Starting patching the languages !");
             XmlSerializer serializer = new(typeof(LocalizationHandler.LocalizationPackages));
 
             FileStream fs = new(Path.Combine(ModPath, filename), FileMode.Open, FileAccess.Read);
             LocalizationHandler.LocalizationPackages lps;
 
-            Plugin.Log?.LogInfo(Language.main.GetCurrentLanguage());
+            Plugin.Log?.LogInfo($"Current language: {Language.main.GetCurrentLanguage()}");
 
             lps = (LocalizationHandler.LocalizationPackages)serializer.Deserialize(fs);
 
             foreach (LocalizationHandler.LocalizationPackage localizationpack in lps.Localizations ?? Enumerable.Empty<LocalizationHandler.LocalizationPackage>())
-                Plugin.Log?.LogInfo(localizationpack.Lang);
-            Plugin.Log?.LogInfo("All LPs logged.");
+                Plugin.Log?.LogInfo($"Supported language: {localizationpack.Lang}");
 
             var localizations = lps.Localizations;
             if (localizations != null)
@@ -64,28 +62,25 @@ namespace SeamothFlareSystem.Utilities
                 {
                     foreach (LocalizationHandler.Text text in selectedPackage.Texts)
                     {
-                        Plugin.Log?.LogInfo($"Checking string, key {text.key}");
                         if (Language.main.Get(text.key) != null)
                         {
                             LanguageHandler.SetLanguageLine(text.key, text.value);
-                            Plugin.Log?.LogInfo($"Patched key {text.key} with text '{(text.value?.Length > 50 ? text.value.Substring(0, 50) + "..." : text.value)}'");
                         }
                         else
                         {
-                            Plugin.Log?.LogInfo($"Key {text.key} does not reference any key in game. Please check the case.");
+                            Plugin.Log?.LogWarning($"Key {text.key} does not reference any key in game.");
                         }
                     }
                 }
                 else
                 {
-                    Plugin.Log?.LogInfo("No matching localization package or texts found.");
+                    Plugin.Log?.LogWarning("No matching localization package or texts found.");
                 }
             }
             else
             {
-                Plugin.Log?.LogInfo("No localizations found in the XML file.");
+                Plugin.Log?.LogWarning("No localizations found in the XML file.");
             }
-            Plugin.Log?.LogInfo("Language patching done.");
         }
 
         public static void GlobalPatch()
@@ -101,8 +96,6 @@ namespace SeamothFlareSystem.Utilities
             {
                 foreach (LocalizationHandler.LocalizationPackage locpack in lps.Localizations)
                 {
-                    Plugin.Log?.LogInfo(locpack.Lang);
-
                     foreach (LocalizationHandler.Text text in locpack.Texts ?? Enumerable.Empty<LocalizationHandler.Text>())
                     {
                         if (string.IsNullOrEmpty(text.value))
@@ -113,7 +106,7 @@ namespace SeamothFlareSystem.Utilities
             }
             else
             {
-                Plugin.Log?.LogInfo("No localizations found in the XML file.");
+                Plugin.Log?.LogWarning("No localizations found in the XML file.");
             }
         }
     }

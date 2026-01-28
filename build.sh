@@ -12,8 +12,7 @@ SUBNAUTICA_PATH="${SUBNAUTICA_PATH:-D:/SteamLibrary/steamapps/common/Subnautica}
 PLUGIN_DIR="$SUBNAUTICA_PATH/BepInEx/plugins/SeamothFlareSystem"
 DLL_PATH="SeamothFlareSystem/bin/Release/net472/SeamothFlareSystem.dll"
 LOCALIZATION_PATH="SeamothFlareSystem/Localizations.xml"
-RESOURCES_PATH="SeamothFlareSystem/Resources"
-MOD_JSON_PATH="SeamothFlareSystem/mod.json"
+ASSETS_PATH="SeamothFlareSystem/seamothflaresystem.assets"
 if [ -f "$DLL_PATH" ]; then
     mkdir -p "$PLUGIN_DIR"
     cp "$DLL_PATH" "$PLUGIN_DIR/"
@@ -26,18 +25,11 @@ if [ -f "$DLL_PATH" ]; then
         echo "✗ Localizations.xml not found at $LOCALIZATION_PATH"
     fi
 
-    if [ -d "$RESOURCES_PATH" ]; then
-        cp -r "$RESOURCES_PATH" "$PLUGIN_DIR/"
-        echo "✓ Resources copied to $PLUGIN_DIR"
+    if [ -f "$ASSETS_PATH" ]; then
+        cp "$ASSETS_PATH" "$PLUGIN_DIR/"
+        echo "✓ Assets copied to $PLUGIN_DIR"
     else
-        echo "✗ Resources directory not found at $RESOURCES_PATH"
-    fi
-    
-    if [ -f "$MOD_JSON_PATH" ]; then
-        cp "$MOD_JSON_PATH" "$PLUGIN_DIR/"
-        echo "✓ mod.json copied to $PLUGIN_DIR"
-    else
-        echo "✗ mod.json not found at $MOD_JSON_PATH"
+        echo "✗ Assets not found at $ASSETS_PATH"
     fi
 else
     echo "✗ DLL not found at $DLL_PATH"
